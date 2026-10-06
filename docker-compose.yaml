@@ -5,11 +5,41 @@ services:
     environment:
       POSTGRES_DB: springshopdb
       POSTGRES_USER: springshop
-      POSTGRES_PASSWORD: springshop
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - springshop_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U springshop -d springshopdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/springshopdb
+      SPRING_DATASOURCE_USERNAME: springshop
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      APP_JWT_SECRET: ${JWT_SECRET}
+      APP_ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@springshop.com}
+      APP_ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      APP_CORS_ALLOWED_ORIGIN: http://localhost:8081
+    #ports:
+    #  - "127.0.0.1:8080:8080"
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8081:80"
 
 volumes:
   springshop_data:

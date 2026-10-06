@@ -1,0 +1,9 @@
+target
+frontend
+data
+.git
+.idea
+.vscode
+*.iml
+HELP.md
+.env

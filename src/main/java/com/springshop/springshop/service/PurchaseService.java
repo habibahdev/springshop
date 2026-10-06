@@ -77,7 +77,7 @@ public class PurchaseService {
     }
 
     public List<PurchaseResponse> findByUser(String email) {
-        return purchaseRepository.findByUserEmailPurchaseCreatedAtDesc(email).stream()
+        return purchaseRepository.findByUserEmailOrderByCreatedAtDesc(email).stream()
                 .map(this::toResponse).toList();
     }
 

@@ -7,9 +7,11 @@ import com.springshop.springshop.entity.Product;
 import com.springshop.springshop.exception.NotFoundException;
 import com.springshop.springshop.repository.CategoryRepository;
 import com.springshop.springshop.repository.ProductRepository;
+import com.springshop.springshop.repository.ProductSpecifications;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,15 +23,11 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
 
     public Page<ProductResponse> search(Long categoryId, String q, Pageable pageable) {
-        Page<Product> page;
-        if (categoryId != null) {
-            page = productRepository.findByCategoryId(categoryId, pageable);
-        } else if (q != null && !q.isBlank()) {
-            page = productRepository.findByNameContainingIgnoreCase(q.trim(), pageable);
-        } else {
-            page = productRepository.findAll(pageable);
-        }
-        return page.map(this::toResponse);
+        Specification<Product> spec = Specification.allOf(
+                ProductSpecifications.hasCategory(categoryId),
+                ProductSpecifications.nameContains(q)
+        );
+        return productRepository.findAll(spec, pageable).map(this::toResponse);
     }
 
     public ProductResponse findById(Long id) {
@@ -56,6 +54,7 @@ public class ProductService {
             throw new NotFoundException("Produit introuvable " + id);
         }
         productRepository.deleteById(id);
+        productRepository.flush();
     }
 
     private Product getOrThrow(Long id) {

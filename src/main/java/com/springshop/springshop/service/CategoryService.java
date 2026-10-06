@@ -42,6 +42,7 @@ public class CategoryService {
             throw new NotFoundException("Catégorie introuvable " + id);
         }
         categoryRepository.deleteById(id);
+        categoryRepository.flush();
     }
 
     private CategoryResponse toResponse(Category c) {
