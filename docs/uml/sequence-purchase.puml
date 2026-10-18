@@ -1,0 +1,42 @@
+@startuml
+title Cration d'une commande : POST /api/purchases
+
+skinparam shadowing false
+skinparam sequenceMessageAlign left
+
+actor Client
+participant "JwtAuthenticationFilter" as JWT
+participant "PurchaseController" as PC
+participant "PurchaseService" as PS
+participant "UserRepository" as UR
+participant "ProductRepository" as PR
+participant "PurchaseRepository" as RR
+participant "GlobalExceptionHandler" as GEH
+
+Client -> JWT : POST /api/purchases\nAuthorization: Bearer <jwt>
+JWT -> JWT : valide le token\ncharge l'utilisateur
+JWT -> PC : requête authentifiée (USER ou ADMIN)
+PC -> PC : @Valid PurchaseRequest\n(400 si invalide)
+PC -> PS : create(request, email)
+activate PS
+
+PS -> UR : findByEmail(email)
+UR -> PS : User\n(404 si inconnu)
+
+loop pour chaque DetailRequest
+    PS -> PR : findById(productId)
+    PR -> PS : Product\n(404 si inconnu)
+    alt stock suffisant
+        PS -> PS : stock -= quantité\najoute un Detail (prix actuel)\ntotal += prix * quantité
+    else stock insuffisant
+        PS -> GEH : BusinessException
+        GEH -> Client : 409 "Stock insufissant"\n(transaction annulée)
+    end
+end
+
+PS -> RR : save(Purchase avec total)
+RR -> PS : Purchase
+PS --> PC : PurchaseResponse
+deactivate PS
+PC --> Client : 201 Created + PurchaseResponse
+@enduml
