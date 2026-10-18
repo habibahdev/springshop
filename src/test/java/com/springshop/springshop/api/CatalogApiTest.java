@@ -85,7 +85,6 @@ class CatalogApiTest extends ApiTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(1)));
 
-        // « % » est un caractère littéral, pas un joker : aucun nom ne le contient
         mockMvc.perform(get("/api/products").param("q", "%"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)));

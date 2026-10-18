@@ -16,8 +16,11 @@ API REST de la boutique : catalogue, comptes, commandes et administration, sécu
 * [Structure du code](#structure-du-code)
 * [Configuration](#configuration)
 * [Modèle de données](#modèle-de-données)
+* [API REST](#api-rest)
+* [Exemple Postman, Curl]
 * [Gestion des erreurs](#gestion-des-erreurs)
 * [Tests](#tests)
+* [CI/CD]
 * [Limites connues](#limites-connues)
 * [Frontend](frontend.md)
 
@@ -211,7 +214,7 @@ app.cors.allowed-origin=http://localhost:4200
 
 ## Modèle de données
 
-![UML](uml/entite_jpa.png)
+[![UML](uml/entite_jpa.png)](uml/data.puml)
 
 Toutes les entités utilisent Lombok (`@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder`) et une clé primaire
 `Long` en `GenerationType.IDENTITY`.
@@ -273,18 +276,6 @@ curl "http://localhost:8080/api/products?q=clean&categoryId=2&page=0&size=12&sor
 - L'utilisateur d'une commande est **toujours celui du token** : un client ne peut pas commander au nom de quelqu'un d'autre.
 - `/me` est une route littérale : Spring la privilégie sur `/{id}`.
 
-### Exemples `curl`
-
-```bash
-# inscription, connexion
-
-# route protégée
-
-# créer un produit
-
-# changer statut d'une commande
-```
-
 ---
 
 ## Gestion des erreurs
@@ -333,8 +324,6 @@ Dépendances de test : `spring-boot-starter-test`, `spring-security-test`, `h2` 
 ./mvnw verify                              # tous les tests (34)
 ./mvnw -Dtest=PurchaseServiceTest test     # une classe
 ```
-
-H2 en mode PostgreSQL est rapide mais n'est pas PostgreSQL ; pour une fidélité totale, passer à Testcontainers.
 
 ---
 
