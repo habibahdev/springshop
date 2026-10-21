@@ -1,0 +1,38 @@
+name: SpringShop - CI
+on:
+  pull_request:
+    branches:
+      - develop
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: API REST - test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v6
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+          cache-dependency-path: pom.xml
+
+      - run: chmod +x mvnw
+
+      - run: ./mvnw -B verify
+
+      - name: Rapport de test
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-reports
+          path: target/surefire-reports
+          if-no-files-found: ignore
+
